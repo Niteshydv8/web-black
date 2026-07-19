@@ -201,8 +201,23 @@ _JOIN_KB = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="𝗩𝗲𝗿𝗶𝗳𝘆", callback_data="verify_membership", style="success", icon_custom_emoji_id=EMOJI_BLUE_TICK)]
 ])
 
-_admin_ids_str = os.getenv("ADMIN_IDS", "")
-ADMIN_IDS = set(int(x.strip()) for x in _admin_ids_str.split(",") if x.strip()) if _admin_ids_str else set()
+_admin_ids_str = os.getenv("ADMIN_IDS", "").strip()
+if _admin_ids_str:
+    try:
+        ADMIN_IDS = set()
+        for id_str in _admin_ids_str.split(","):
+            id_str = id_str.strip()
+            if id_str and id_str.isdigit():
+                ADMIN_IDS.add(int(id_str))
+        print(f"[STARTUP] ✅ Loaded {len(ADMIN_IDS)} admin IDs: {sorted(ADMIN_IDS)}")
+        logging.info(f"Admin IDs loaded: {ADMIN_IDS}")
+    except Exception as e:
+        print(f"[ERROR] Failed to parse ADMIN_IDS '{_admin_ids_str}': {e}")
+        logging.error(f"Failed to parse ADMIN_IDS: {e}")
+        ADMIN_IDS = set()
+else:
+    print("[WARNING] ADMIN_IDS environment variable is not set!")
+    ADMIN_IDS = set()
 
 
 class MembershipMiddleware(BaseMiddleware):
