@@ -24,6 +24,7 @@ from ban import ban_command, unban_command, BanMiddleware, router as ban_router
 from maintenance import maintenance_command, MaintenanceMiddleware, router as maintenance_router
 from status import vps_command, router as status_router
 from admin import router as admin_router, admin_command, restart_command
+from admin_api import router as admin_api_router
 from admin_prx import router as prx_router, prx_command
 from admin_sites import router as sites_router, addsites_command, checksite_command
 
@@ -127,6 +128,7 @@ dp.include_router(ban_router)
 dp.include_router(broad_router)
 dp.include_router(status_router)
 dp.include_router(admin_router)
+dp.include_router(admin_api_router)
 dp.include_router(prx_router)
 dp.include_router(sites_router)
 dp.include_router(maintenance_router)
