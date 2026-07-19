@@ -631,3 +631,156 @@ def load_global_proxies_http() -> list:
 if __name__ == "__main__":
     pass
 ensure_codes_table()
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROXY HEALTH TRACKING (Tier 1 - Proxy Rotation)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+async def get_proxy_health(proxy: str) -> dict:
+    """Get proxy health status from database."""
+    col = get_collection("proxy_health")
+    doc = col.find_one({"proxy": proxy})
+    
+    if not doc:
+        return {
+            "status": "LIVE",
+            "success_count": 0,
+            "failure_count": 0,
+            "last_latency_ms": 0,
+            "dead_until": None,
+            "failure_reason": None,
+        }
+    
+    dead_until = doc.get("dead_until")
+    if dead_until and datetime.now() < dead_until:
+        return {
+            "status": "DEAD",
+            "success_count": doc.get("success_count", 0),
+            "failure_count": doc.get("failure_count", 0),
+            "last_latency_ms": doc.get("last_latency_ms", 0),
+            "dead_until": dead_until,
+            "failure_reason": doc.get("failure_reason"),
+        }
+    
+    return {
+        "status": doc.get("status", "LIVE"),
+        "success_count": doc.get("success_count", 0),
+        "failure_count": doc.get("failure_count", 0),
+        "last_latency_ms": doc.get("last_latency_ms", 0),
+        "dead_until": None,
+        "failure_reason": doc.get("failure_reason"),
+    }
+
+
+async def update_proxy_health(proxy: str, success: bool, latency_ms: float, reason: str = None) -> dict:
+    """Update proxy health and return status change info."""
+    from datetime import timedelta
+    
+    col = get_collection("proxy_health")
+    now = datetime.now()
+    
+    doc = col.find_one({"proxy": proxy})
+    if not doc:
+        if success:
+            col.insert_one({
+                "proxy": proxy,
+                "status": "LIVE",
+                "success_count": 1,
+                "failure_count": 0,
+                "last_latency_ms": latency_ms,
+                "dead_until": None,
+                "failure_reason": None,
+                "first_tested": now,
+                "last_tested": now,
+            })
+            return {"status_changed": False, "old_status": "LIVE", "new_status": "LIVE", "marked_dead": False}
+        else:
+            col.insert_one({
+                "proxy": proxy,
+                "status": "LIVE",
+                "success_count": 0,
+                "failure_count": 1,
+                "last_latency_ms": latency_ms,
+                "dead_until": None,
+                "failure_reason": reason,
+                "first_tested": now,
+                "last_tested": now,
+            })
+            return {"status_changed": False, "old_status": "LIVE", "new_status": "LIVE", "marked_dead": False}
+    
+    old_status = doc.get("status", "LIVE")
+    success_count = doc.get("success_count", 0)
+    failure_count = doc.get("failure_count", 0)
+    
+    if success:
+        success_count += 1
+        failure_count = 0
+    else:
+        failure_count += 1
+    
+    marked_dead = False
+    dead_until = None
+    
+    if failure_count >= 3:
+        marked_dead = True
+        dead_until = now + timedelta(minutes=30)
+    
+    total_recent = success_count + failure_count
+    if total_recent >= 10:
+        failure_rate = failure_count / total_recent
+        if failure_rate >= 0.5:
+            marked_dead = True
+            dead_until = now + timedelta(minutes=30)
+    
+    new_status = "DEAD" if marked_dead else "LIVE"
+    
+    col.update_one(
+        {"proxy": proxy},
+        {
+            "$set": {
+                "status": new_status,
+                "success_count": success_count,
+                "failure_count": failure_count,
+                "last_latency_ms": latency_ms,
+                "dead_until": dead_until,
+                "failure_reason": reason,
+                "last_tested": now,
+            }
+        }
+    )
+    
+    status_changed = old_status != new_status
+    
+    return {
+        "status_changed": status_changed,
+        "old_status": old_status,
+        "new_status": new_status,
+        "marked_dead": marked_dead,
+    }
+
+
+async def save_site_gateway(site_url: str, gateway_name: str) -> None:
+    """Save or update site gateway information."""
+    col = get_collection("sites")
+    col.update_one(
+        {"url": site_url},
+        {
+            "$set": {
+                "gateway": gateway_name,
+                "last_checked": datetime.now(),
+            }
+        },
+        upsert=True
+    )
+
+
+async def get_site_gateway(site_url: str) -> str:
+    """Retrieve gateway name for a site."""
+    col = get_collection("sites")
+    doc = col.find_one({"url": site_url})
+    
+    if doc and doc.get("gateway"):
+        return doc["gateway"]
+    
+    return "Unknown"
+

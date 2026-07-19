@@ -3438,3 +3438,91 @@ async def run_mass_checker(bot: Bot, session_id, cards, user_obj, plan_name):
 
     print(f"✅ [MSH] Session {session_id} finished")
     logging.info(f"✅ [MSH] Session {session_id} finished")
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROXY ROTATION & HEALTH TRACKING (Tier 1)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+_proxy_rotation_counter: dict = {}
+_proxy_rotation_lock = asyncio.Lock()
+
+async def get_next_proxy_with_rotation(session_id: str, proxy_manager) -> tuple:
+    """Smart proxy rotation: rotate every 5-8 cards to prevent IP bans."""
+    global _proxy_rotation_counter
+    
+    async with _proxy_rotation_lock:
+        count = _proxy_rotation_counter.get(session_id, 0)
+        count += 1
+        
+        rotate_after = random.randint(5, 8)
+        should_rotate = count > rotate_after
+        
+        if should_rotate:
+            _proxy_rotation_counter[session_id] = 0
+        else:
+            _proxy_rotation_counter[session_id] = count
+    
+    proxy_result = proxy_manager.get_next_proxy()
+    if not proxy_result:
+        return None, False
+    
+    proxy, _ = proxy_result
+    
+    try:
+        from database import get_proxy_health
+        health = await get_proxy_health(proxy)
+        if health.get("status") == "DEAD":
+            logging.debug(f"[MSH] Skipping DEAD proxy: {proxy}")
+            return None, False
+    except Exception as e:
+        logging.debug(f"[MSH] Error checking proxy health: {e}")
+    
+    return proxy, should_rotate
+
+
+async def notify_admin_proxy_change(proxy_url: str, is_dead: bool, reason: str, bot: Bot, admin_ids: set) -> None:
+    """Notify admins when proxy status changes."""
+    from proxy import notify_admin_proxy_status_change
+    
+    try:
+        await notify_admin_proxy_status_change(
+            proxy_url=proxy_url,
+            is_dead=is_dead,
+            reason=reason,
+            bot=bot,
+            admin_ids=admin_ids
+        )
+    except Exception as e:
+        logging.error(f"[MSH] Error notifying admin: {e}")
+
+
+async def record_proxy_outcome_and_check_health(proxy: str, success: bool, latency_ms: float, error_reason: str = None, bot: Bot = None, admin_ids: set = None) -> None:
+    """Track proxy outcome and notify admin if status changes."""
+    from proxy import check_and_update_proxy_health
+    
+    try:
+        result = await check_and_update_proxy_health(proxy, success, latency_ms, error_reason)
+        
+        if result.get("status_changed"):
+            old_status = result.get("old_status")
+            new_status = result.get("new_status")
+            
+            if new_status == "DEAD" and old_status == "LIVE":
+                await notify_admin_proxy_change(
+                    proxy_url=proxy,
+                    is_dead=True,
+                    reason=error_reason or f"{result.get('failure_count', 0)} consecutive failures",
+                    bot=bot,
+                    admin_ids=admin_ids
+                )
+            elif new_status == "LIVE" and old_status == "DEAD":
+                await notify_admin_proxy_change(
+                    proxy_url=proxy,
+                    is_dead=False,
+                    reason="Cooldown expired, testing resumed",
+                    bot=bot,
+                    admin_ids=admin_ids
+                )
+    except Exception as e:
+        logging.error(f"[MSH] Error recording proxy outcome: {e}")
+

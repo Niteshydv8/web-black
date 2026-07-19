@@ -1203,3 +1203,54 @@ async def resetproxy_command(message: types.Message):
         f"<b>Available Now:</b> <code>{len(PROXY_LIST)}</code>",
         parse_mode="HTML"
     )
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# GATEWAY EXTRACTION (Tier 3)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def check_payment_gateway(content_type: str, headers: dict, html: str, cookies: dict) -> str:
+    """Extract payment gateway from site response."""
+    gateway_keywords = {
+        'shopify': ['shopify', 'myshopify', 'shopify.com', 'checkout.shopify.com'],
+        'stripe': ['stripe', 'checkout.stripe.com', 'js.stripe.com'],
+        'paypal': ['paypal', 'paypal.com', 'checkout.js'],
+        'square': ['square', 'squareup.com', 'connect.squareup.com'],
+        'adyen': ['adyen', 'adyen.com', 'adyen-payment'],
+        'braintree': ['braintree', 'braintreegateway.com'],
+        'mollie': ['mollie', 'api.mollie.com'],
+        'worldpay': ['worldpay', 'secure.worldpay.com'],
+        'cybersource': ['cybersource', 'cybersource.com'],
+        'authorize.net': ['authorize.net', 'authorizenet.com'],
+    }
+    
+    content_str = str(content_type).lower()
+    headers_str = str(headers).lower()
+    html_lower = html.lower()
+    cookies_str = str(cookies).lower()
+    
+    for gateway, keywords in gateway_keywords.items():
+        for keyword in keywords:
+            if keyword.lower() in content_str or keyword.lower() in headers_str or keyword.lower() in html_lower:
+                return gateway.capitalize()
+    
+    return "Unknown"
+
+
+async def extract_and_store_site_gateway(site_url: str, response_data: dict) -> None:
+    """Extract gateway from API response and store in database."""
+    from database import save_site_gateway
+    
+    try:
+        content_type = response_data.get('content_type', '')
+        headers = response_data.get('headers', {})
+        html = response_data.get('html', '')
+        cookies = response_data.get('cookies', {})
+        
+        gateway = check_payment_gateway(content_type, headers, html, cookies)
+        
+        if gateway and gateway != "Unknown":
+            await save_site_gateway(site_url, gateway)
+            logging.info(f"[SITECHK] Stored gateway for {site_url}: {gateway}")
+    except Exception as e:
+        logging.error(f"[SITECHK] Error extracting gateway: {e}")
+
