@@ -232,6 +232,43 @@ async def admin_command(message: types.Message):
     )
 
 
+@router.message(Command("admincheck"))
+async def admincheck_command(message: types.Message):
+    """Debug command: show current ADMIN_IDS and check if you're in it"""
+    user_id = message.from_user.id
+    user_name = message.from_user.first_name or "User"
+
+    crown = f'<tg-emoji emoji-id="{EMOJI_CROWN}">👑</tg-emoji>'
+    red = f'<tg-emoji emoji-id="{EMOJI_RED_TICK}">❌</tg-emoji>'
+    green = f'<tg-emoji emoji-id="{EMOJI_BLUE_TICK}">✅</tg-emoji>'
+
+    # Show raw env var
+    raw_env = os.getenv("ADMIN_IDS", "(not set)")
+
+    # Show parsed ADMIN_IDS set
+    admin_list = sorted(ADMIN_IDS)
+    is_admin = user_id in ADMIN_IDS
+
+    status_icon = green if is_admin else red
+    status_text = "✅ YOU ARE ADMIN" if is_admin else "❌ NOT ADMIN"
+
+    text = (
+        f"{crown} <b>𝗔𝗗𝗠𝗜𝗡 𝗖𝗛𝗘𝗖𝗞</b>\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"<b>Your ID:</b> <code>{user_id}</code>\n"
+        f"<b>Your Name:</b> {user_name}\n"
+        f"{status_icon} <b>{status_text}</b>\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"<b>Parsed ADMIN_IDS:</b> <code>{admin_list}</code>\n"
+        f"<b>Count:</b> {len(ADMIN_IDS)}\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"<b>Raw Env Var:</b>\n<code>{raw_env}</code>\n"
+        f"━━━━━━━━━━━━━━"
+    )
+
+    await message.reply(text, parse_mode="HTML")
+
+
 # Quick action buttons — all admin-only
 @router.callback_query(F.data == "admin_quick_vps")
 async def admin_vps_cb(callback: types.CallbackQuery):
