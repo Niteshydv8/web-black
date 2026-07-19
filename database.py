@@ -9,12 +9,12 @@ import os
 import hashlib
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# DATABASE CONFIG  (edit only this block)
+# DATABASE CONFIG  (reads from Railway environment)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-MONGO_URI = "mongodb+srv://LegendRukia:IkRukia@cluster0.b6vl5kc.mongodb.net/?appName=Cluster0"
-# 🔴 Replace above with your actual MongoDB Atlas URI
-# Format: mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<dbname>
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+if not MONGO_URI or MONGO_URI == "mongodb://localhost:27017":
+    raise ValueError("MONGO_URI environment variable is not set. Please set it to your MongoDB connection string.")
 
 DB_NAME = "telegram_bot"
 
@@ -631,3 +631,4 @@ def load_global_proxies_http() -> list:
 if __name__ == "__main__":
     pass
 ensure_codes_table()
+
