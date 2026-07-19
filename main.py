@@ -1,3 +1,4 @@
+import os
 import logging
 import asyncio
 import time
@@ -48,7 +49,9 @@ from mass_gates.sitechk import (
 
 import payments as pay_sys
 
-BOT_TOKEN = "8952038376:AAGl6I8qu8-pn8uf6uvtDrEsuUsc_m70iJg"
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+if not BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set")
 WEBHOOK_URL = f"shopify-api-nepaliii.up.railway.app/{BOT_TOKEN}"
 WEBHOST = "0.0.0.0"
 WEBPORT = 8080
