@@ -1,3 +1,4 @@
+import os
 import logging
 import asyncio
 import time
@@ -48,7 +49,9 @@ from mass_gates.sitechk import (
 
 import payments as pay_sys
 
-BOT_TOKEN = "8952038376:AAGl6I8qu8-pn8uf6uvtDrEsuUsc_m70iJg"
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN not set")
 WEBHOOK_URL = f"shopify-api-nepaliii.up.railway.app/{BOT_TOKEN}"
 WEBHOST = "0.0.0.0"
 WEBPORT = 8080
@@ -198,7 +201,8 @@ _JOIN_KB = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="𝗩𝗲𝗿𝗶𝗳𝘆", callback_data="verify_membership", style="success", icon_custom_emoji_id=EMOJI_BLUE_TICK)]
 ])
 
-ADMIN_IDS = {8502412301, 8952038376, 7814400733}
+_admin_ids_str = os.getenv("ADMIN_IDS", "")
+ADMIN_IDS = set(int(x.strip()) for x in _admin_ids_str.split(",") if x.strip()) if _admin_ids_str else set()
 
 
 class MembershipMiddleware(BaseMiddleware):
