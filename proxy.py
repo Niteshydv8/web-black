@@ -686,3 +686,52 @@ async def myproxies_command(message: types.Message):
     except Exception as e:
         logging.error(f"DB Error: {e}")
         await message.reply("<b>❌ Error.</b>", parse_mode="HTML")
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# INDEPENDENT PROXY HEALTH TRACKING (Tier 1)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+async def check_and_update_proxy_health(proxy_url: str, success: bool, latency_ms: float, error_reason: str = None) -> dict:
+    """Update proxy health status and return change info for notifications."""
+    from database import update_proxy_health
+    
+    result = await update_proxy_health(proxy_url, success, latency_ms, error_reason)
+    logging.debug(f"[PROXY] Health update for {proxy_url}: {result}")
+    return result
+
+
+async def notify_admin_proxy_status_change(proxy_url: str, is_dead: bool, reason: str = None, bot=None, admin_ids=None) -> None:
+    """Send DM notification to admins when proxy status changes."""
+    if not bot or not admin_ids:
+        return
+    
+    try:
+        if is_dead:
+            message = f"""🚨 <b>PROXY DEAD</b>
+
+Proxy: <code>{proxy_url}</code>
+Reason: {reason or 'Unknown'}
+Status: Skipping for 30 minutes
+
+Action: Will auto-retry later."""
+        else:
+            message = f"""✅ <b>PROXY ALIVE AGAIN</b>
+
+Proxy: <code>{proxy_url}</code>
+Status: Re-added to rotation pool
+
+Action: Monitoring health..."""
+        
+        for admin_id in admin_ids:
+            try:
+                await bot.send_message(
+                    chat_id=admin_id,
+                    text=message,
+                    parse_mode="HTML"
+                )
+                logging.info(f"[PROXY] Notified admin {admin_id} about {proxy_url} {'DEAD' if is_dead else 'ALIVE'}")
+            except Exception as e:
+                logging.error(f"[PROXY] Could not notify admin {admin_id}: {e}")
+    except Exception as e:
+        logging.error(f"[PROXY] Error in proxy status notification: {e}")
+
