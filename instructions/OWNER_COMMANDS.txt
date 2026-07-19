@@ -1,0 +1,273 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗕𝗟𝗔𝗖𝗞𝗟𝗜𝗦𝗧𝗘𝗗 𝗖𝗫𝗖 — 𝗢𝗪𝗡𝗘𝗥 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗠𝗔𝗡𝗨𝗔𝗟
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Bot      : @testfrkhfx_bot
+Owner    : Blacklisted Carder
+Telegram : https://t.me/blacklistedcarder1
+Support  : https://t.me/blacklistedcarder1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗔𝗗𝗠𝗜𝗡 𝗜𝗗𝗦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 8760363324  — broad, ban, unban, fb approve, sub, adcr,
+               rsub, rc, suball, g_code, vps
+• 8502412301  — msh bypass, sitechk, addsite, siteall,
+               removeall, dedupe, proxyinfo, resetproxy
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟭 — 𝗕𝗔𝗦𝗜𝗖 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 (𝗔𝗟𝗟 𝗨𝗦𝗘𝗥𝗦)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/start
+   Opens main menu. Use /start buy to jump to plans.
+
+/cmds
+   Lists every command (paginated).
+
+/binn  <bin>
+   Looks up BIN details (brand, level, bank, country,
+   type, currency). Costs 1 credit. Use as /binn 456789
+   or reply to a message containing the BIN.
+
+/proxy  <ip:port:user:pass>
+   Saves proxies to your account. Accepts inline list,
+   reply to a text file, or .txt document (max 2 MB).
+   Format: host:port:user:pass  (one per line).
+
+/checkproxy
+   Tests every saved proxy against Shopify. Returns a
+   Live / Dead .txt file.
+
+/clearproxy
+   Wipes all your saved proxies.
+
+/myproxies
+   Shows how many proxies you currently have saved.
+
+/stats
+   Global leaderboard — top 10 users ranked by charged
+   cards.
+
+/info
+   Your own account info (plan, credits, hits, etc).
+
+/buy
+   Opens the pricing chart + buy buttons.
+
+/claim  <code>
+   Redeems a redeem code for credits.
+
+/fb
+   Reply to any hit (charged/approved) with /fb to submit
+   feedback to the channel. Supports photo, video, GIF,
+   document, photo album (max 7).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟮 — 𝗦𝗛𝗢𝗣𝗜𝗙𝗬 𝗚𝗔𝗧𝗘𝗦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/sh  <cc|mm|yy|cvv>
+   Single card check. Up to 50 cards per run.
+   Format: /sh 4111111111111111|12|25|123
+   Or reply to a message with cards.
+   Free for all users.
+
+/msh  <cc|mm|yy|cvv>
+   Mass Shopify check (0-20 USD). Up to 5000 cards.
+   Format: /msh 4111111111111111|12|25|123
+   Or reply to a text/document with cards.
+   PREMIUM only (admin bypasses).
+
+/stop  <session_id>
+   Cancels a running /msh job.
+   Session ID is printed in the progress message.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟯 — 𝗢𝗪𝗡𝗘𝗥-𝗢𝗡𝗟𝗬 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/vps
+   VPS / server health (RAM, CPU, disk, uptime, Mongo
+   ping, proxy pool size).
+
+/broad
+   Reply to ANY message with /broad to broadcast it to
+   every user in the DB. Sent as a native bot message
+   (no "Forwarded from" header).
+
+/ban  <user_id>
+   Bans a user. Example: /ban 123456789
+
+/unban  <user_id>
+   Unbans a user. Example: /unban 123456789
+
+/sub  <user_id|@username> <plan>
+   Manually subscribes a user.
+   Plans: core  •  elite  •  root
+   Example: /sub 123456789 elite
+
+/rsub  <user_id|@username>
+   Removes subscription from a user.
+
+/adcr  <user_id> <amount>
+   Adds credits to a user.
+   Example: /adcr 123456789 5000
+
+/rc  <receipt_id>
+   Removes credits using the receipt id.
+
+/suball
+   Lists every premium subscriber.
+
+/g_code  <amount>
+   Generates a redeem code for <amount> credits.
+
+/sitechk
+   Audits sites.txt — pings every site, removes dead
+   ones, deduplicates live ones.
+
+/addsite
+   Reply to a .txt file with /addsite. New sites are
+   added, duplicates skipped.
+
+/siteall
+   Downloads the full deduplicated sites list as a
+   .txt file.
+
+/removeall
+   Wipes every site from sites.txt.
+
+/dedupe
+   Force deduplicate sites.txt without pinging.
+
+/proxyinfo
+   Shows proxy pool stats (available / bad / total).
+
+/resetproxy
+   Resets every bad proxy back to available.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟰 — 𝗣𝗥𝗢𝗫𝗬 𝗣𝗢𝗢𝗟
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+proxies.txt is the SHARED global pool. Every user
+uses it automatically — no manual setup needed.
+
+Format in proxies.txt  →  host:port:user:pass
+Loaded once at startup by database.load_global_proxies.
+
+Bad proxies are flagged automatically during checks.
+/proxyinfo shows the current state.
+/resetproxy clears the bad list.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟱 — 𝗖𝗔𝗥𝗗 𝗥𝗘𝗦𝗣𝗢𝗡𝗦𝗘 𝗠𝗔𝗣𝗣𝗜𝗡𝗚
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+New API endpoint:
+   https://shopify-api-production-007.up.railway.app/check
+Params: card, url, proxy
+
+Response fields (new shape):
+   success        : bool
+   status         : str   (CHARGED / APPROVED / DECLINED …)
+   gateway        : str
+   amount         : str   (price)
+   currency       : str   (USD)
+   error          : str   (primary reason)
+   declined_reason: str   (fallback reason)
+   response_text  : str   (raw API text)
+   site_name      : str
+   elapsed_ms     : int
+
+Mapping used in code:
+   msh.py  →  data.get("gateway"),
+               data.get("amount"),
+               data.get("error" | "declined_reason"
+                        | "response_text" | "status"),
+               data.get("success")
+   sh.py   →  same mapping (lines 221-227)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟲 — 𝗛𝗜𝗧 𝗣𝗜𝗡 𝗕𝗘𝗛𝗔𝗩𝗜𝗢𝗨𝗥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• /msh charged hits → DM sent as GIF + pinned
+  (disable_notification = True)
+• /sh charged result → final result message pinned
+  in user chat when charged_count > 0
+• Approved hits → DM only, not pinned.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟳 — 𝗚𝗥𝗢𝗨𝗣 𝗦𝗘𝗧𝗧𝗜𝗡𝗚𝗦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REQUIRED_GROUP_ID   = -5156016219
+HIT_LOG_GROUP_ID    = -1003911344323
+EXTRA_CHARGED_GROUP = -1003713530633
+FEEDBACK_CHANNEL    = -1003952934184
+LOG_CHANNEL_ID      = (see main.py)
+Group invite        = https://t.me/+fLo1rc-KoAUxYzVl
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟴 — 𝗖𝗥𝗘𝗗𝗜𝗧 𝗥𝗨𝗟𝗘𝗦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• /sh           :  1 credit per card that returned
+                   a real response (no charge on
+                   "dead / site error").
+• /msh          :  premium only, uses up to 5000
+                   cards per session.
+• /binn         :  1 credit on successful lookup.
+• Admins        :  /msh bypasses maintenance,
+                   premium, credit deduction.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟵 — 𝗤𝗨𝗜𝗖𝗞 𝗧𝗥𝗢𝗨𝗕𝗟𝗘𝗦𝗛𝗢𝗢𝗧𝗜𝗡𝗚
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"Unknown Error" on every card
+   → API field mismatch fixed (see Section 5).
+   → Make sure you restarted after pulling code.
+
+All cards return "dead / site error"
+   → Run /sitechk. If many sites fail, /removeall +
+     /addsite with fresh sites.
+
+Membership check fails for owner
+   → Bot must be admin in REQUIRED_GROUP_ID.
+   → If group was migrated, accept new supergroup ID
+     (-100xxxxxxxxxx).
+
+Promo buttons / unwanted inline buttons
+   → Already removed. Only Back / Paid ✅ / Support
+     buttons remain.
+
+Charged hit not pinned
+   → Bot needs "Pin Messages" permission in the chat.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗦𝗘𝗖𝗧𝗜𝗢𝗡 𝟭𝟬 — 𝗙𝗶𝗹𝗲 𝗟𝗮𝘆𝗼𝘂𝘁
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+main.py               → start menu, group IDs
+cmds.py               → /cmds command list
+bin.py, gates/bin.py  → BIN API helper
+tools/binn.py         → /binn command
+proxy.py              → /proxy, /checkproxy, /clearproxy,
+                        /myproxies
+gates/sh.py           → /sh command
+mass_gates/msh.py     → /msh, /stop retry handler,
+                        progress UI, charged DM, pin
+mass_gates/stop.py    → /stop command
+mass_gates/sitechk.py → /sitechk, /addsite, /siteall,
+                        /removeall, /dedupe,
+                        /proxyinfo, /resetproxy
+stats.py              → /stats leaderboard
+status.py             → /vps command
+sub.py                → /buy, /sub, /adcr, /rsub, /rc,
+                        /info, /suball, /g_code, /claim
+payments.py           → payment plans + activation
+fb.py                 → /fb feedback
+broad.py              → /broad broadcast
+ban.py                → /ban, /unban
+database.py           → Mongo helpers, proxy loader
+proxies.txt           → shared proxy pool (host:port:user:pass)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 𝗗𝗲𝘃 ➛ Blacklisted Carder
+ https://t.me/blacklistedcarder1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
