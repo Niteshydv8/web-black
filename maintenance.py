@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from typing import Callable, Dict, Any, Awaitable
 from datetime import datetime
@@ -10,7 +11,24 @@ from database import get_collection
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CONFIGURATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ADMIN_IDS = {8502412301, 8952038376, 7814400733}
+# Read ADMIN_IDS from environment variable
+_admin_ids_str = os.getenv("ADMIN_IDS", "").strip()
+if _admin_ids_str:
+    try:
+        ADMIN_IDS = set()
+        for id_str in _admin_ids_str.split(","):
+            id_str = id_str.strip()
+            if id_str and id_str.isdigit():
+                ADMIN_IDS.add(int(id_str))
+        print(f"[STARTUP] ✅ Loaded {len(ADMIN_IDS)} admin IDs in maintenance.py: {sorted(ADMIN_IDS)}")
+        logging.info(f"Admin IDs loaded in maintenance.py: {ADMIN_IDS}")
+    except Exception as e:
+        print(f"[ERROR] Failed to parse ADMIN_IDS in maintenance.py: {e}")
+        logging.error(f"Failed to parse ADMIN_IDS: {e}")
+        ADMIN_IDS = set()
+else:
+    print("[WARNING] ADMIN_IDS environment variable is not set in maintenance.py!")
+    ADMIN_IDS = set()
 
 router = Router()
 
