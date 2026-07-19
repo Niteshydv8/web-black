@@ -103,7 +103,7 @@ TEST_CARDS = [
 ]  # 60 cards total — all FUTURE exp dates
 
 # API Configuration (admin-specified URL — used ONLY for site checks)
-SITE_CHECK_API_URL = "http://38.247.64.215:5000/shopify"
+SITE_CHECK_API_URL = os.getenv("SITECHK_API_URL", "http://38.247.64.215:5000/shopify")
 API_TIMEOUT = 30
 PRICE_FETCH_TIMEOUT = 8  # short timeout — price pre-fetch should be a "quick probe", not block site-check
 

@@ -47,11 +47,9 @@ from mass_gates.sitechk import (
     removeall_command, dedupe_command, proxyinfo_command, resetproxy_command
 )
 
-import payments as pay_sys
-
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 if not BOT_TOKEN:
-    raise ValueError("TELEGRAM_BOT_TOKEN not set")
+    raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set")
 WEBHOOK_URL = f"shopify-api-nepaliii.up.railway.app/{BOT_TOKEN}"
 WEBHOST = "0.0.0.0"
 WEBPORT = 8080
@@ -60,14 +58,14 @@ WEBPORT = 8080
 LOCAL_MODE = True
 
 START_IMAGE = FSInputFile("start.jpg", filename="start.jpg")
-LOG_CHANNEL_ID = -5156016219  # fallback numeric — overridden by resolver at startup
-LOG_CHANNEL_HANDLE = "@blackulogs"   # public handle resolved to ID on startup
+LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID", "-5156016219"))  # fallback numeric — overridden by resolver at startup
+LOG_CHANNEL_HANDLE = os.getenv("LOG_CHANNEL_HANDLE", "@blackulogs")   # public handle resolved to ID on startup
 BOT_LINK = "@MasterMindcxc_bot"
 
-REQUIRED_CHANNEL_ID = -1003074006773  # fallback numeric — overridden by resolver at startup
-REQUIRED_CHANNEL_HANDLE = "@blacklistedcarder011"   # public handle resolved to ID on startup
-REQUIRED_GROUP_ID = -1004356770626  # fallback numeric — overridden by resolver at startup
-REQUIRED_GROUP_HANDLE = "@blacklistedchecker"   # public handle resolved to ID on startup
+REQUIRED_CHANNEL_ID = int(os.getenv("REQUIRED_CHANNEL_ID", "-1003074006773"))  # fallback numeric — overridden by resolver at startup
+REQUIRED_CHANNEL_HANDLE = os.getenv("REQUIRED_CHANNEL_HANDLE", "@blacklistedcarder011")   # public handle resolved to ID on startup
+REQUIRED_GROUP_ID = int(os.getenv("REQUIRED_GROUP_ID", "-1004356770626"))  # fallback numeric — overridden by resolver at startup
+REQUIRED_GROUP_HANDLE = os.getenv("REQUIRED_GROUP_HANDLE", "@blacklistedchecker")   # public handle resolved to ID on startup
 CHANNEL_LINK = "https://t.me/blacklistedcarder011"
 GROUP_LINK = "https://t.me/blacklistedchecker"
 
@@ -201,8 +199,7 @@ _JOIN_KB = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="𝗩𝗲𝗿𝗶𝗳𝘆", callback_data="verify_membership", style="success", icon_custom_emoji_id=EMOJI_BLUE_TICK)]
 ])
 
-_admin_ids_str = os.getenv("ADMIN_IDS", "")
-ADMIN_IDS = set(int(x.strip()) for x in _admin_ids_str.split(",") if x.strip()) if _admin_ids_str else set()
+ADMIN_IDS = set(int(x.strip()) for x in os.getenv("ADMIN_IDS", "7814400733,5762701937").split(",") if x.strip())
 
 
 class MembershipMiddleware(BaseMiddleware):
@@ -411,7 +408,7 @@ STATIC_MENU_MAP: dict = {
     "menu_mass_in_gates": ("<b><i>Select a Mass Gate</i></b>", _KB_MASS),
     "menu_auth":          ("<b><i>Select Auth Method</i></b>", _KB_AUTH),
     "menu_charge":        ("<b><i>Select Charge Method</i></b>", _KB_CHARGE),
-    "menu_payment_methods": (_PAYMENT_SELECT_TEXT, None),  # kb injected at runtime
+    "menu_payment_methods": ("<b>💳 Payments are currently unavailable.</b>", _KB_BACK_MAIN),
     "info_sh_gate": (
         f"{_SEP}\n<b><i>Gate ➛ Shopify Single</i></b>\n<b><i>Command ➛ /sh</i></b>\n"
         f"<b><i>Usage ➛ <code>/sh cc|mm|yy|cvv</code></i></b>\n<b><i>Type ➛ Single Checker</i></b>\n{_SEP}",
@@ -570,8 +567,6 @@ async def button_handler(callback: types.CallbackQuery):
     static = STATIC_MENU_MAP.get(data)
     if static is not None:
         text, kb = static
-        if kb is None:  # menu_payment_methods — kb computed at runtime
-            kb = pay_sys.get_plan_selection_keyboard()
         asyncio.create_task(_safe_answer(callback))   # answer instantly — no waiting
         asyncio.create_task(_edit(msg, text, kb))     # edit in background
         return
@@ -601,178 +596,6 @@ async def button_handler(callback: types.CallbackQuery):
             pass
         return
 
-    # ── PAYMENT PLAN SELECTION ──────────────────────────────────────────────
-    if data.startswith("pay_plan_"):
-        plan = data[9:]
-        if plan not in pay_sys.PLANS:
-            asyncio.create_task(_safe_answer(callback))
-            asyncio.create_task(msg.answer("Invalid plan!"))
-            return
-        pi = pay_sys.PLANS[plan]
-        pay_sys.set_user_session(user_id, plan)
-        text = (
-            f"<b>{pi['display']} 𝗣𝗹𝗮𝗻</b>\n"
-            f"<b>𝗣𝗿𝗶𝗰𝗲 ➛</b> ${pi['price']}\n"
-            f"<b>𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻 ➛</b> {pi['days']} Days\n"
-            f"<b>𝗖𝗿𝗲𝗱𝗶𝘁𝘀 ➛</b> {pi['credits']:,}\n"
-            f"<b>𝗦𝗲𝗹𝗲𝗰𝘁 𝗣𝗮𝘆𝗺𝗲𝗻𝘁 𝗠𝗲𝘁𝗵𝗼𝗱:</b>"
-        )
-        asyncio.create_task(_safe_answer(callback))
-        asyncio.create_task(_edit(msg, text, pay_sys.get_network_selection_keyboard(user_id)))
-        return
-
-    # ── BACK TO PLAN LIST ───────────────────────────────────────────────────
-    if data.startswith("pay_back_plans_"):
-        try:
-            owner_id = int(data[15:])
-        except ValueError:
-            await _safe_answer(callback, "❌ Error", show_alert=True)
-            return
-        if user_id != owner_id:
-            await _safe_answer(callback, "❌ No permission", show_alert=True)
-            return
-        asyncio.create_task(_safe_answer(callback))
-        asyncio.create_task(_edit(msg, _PAYMENT_SELECT_TEXT, pay_sys.get_plan_selection_keyboard()))
-        return
-
-    # ── DIRECT PAYMENT INITIATION ───────────────────────────────────────────
-    if data.startswith("pay_direct_"):
-        net_key = data[11:]
-        session = pay_sys.get_user_session(user_id)
-        if not session or not session.get("plan"):
-            asyncio.create_task(_safe_answer(callback))
-            asyncio.create_task(msg.answer("Session expired!"))
-            return
-        plan = session["plan"]
-        net_info = pay_sys.DIRECT_NETWORKS.get(net_key)
-        if not net_info:
-            asyncio.create_task(_safe_answer(callback))
-            asyncio.create_task(msg.answer("Invalid network!"))
-            return
-        pay_sys.cancel_user_active_payment(user_id)
-        payment_data = await asyncio.to_thread(
-            pay_sys.create_payment, user_id, plan, net_info["currency"], net_info["network"]
-        )
-        if not payment_data:
-            await asyncio.gather(
-                _safe_answer(callback),
-                _edit(msg, "❌ <b>Payment Failed</b>\n\nPlease try again later.",
-                      _back("menu_pricing")),
-            )
-            return
-        track_id = payment_data["track_id"]
-        pay_sys.register_payment(track_id, user_id, plan)
-        caption = pay_sys.format_payment_caption(payment_data, plan)
-        kb = pay_sys.get_paid_button_keyboard(track_id, user_id)
-        await _safe_answer(callback)
-        try:
-            sent_msg = await msg.answer(text=caption, reply_markup=kb, disable_web_page_preview=True)
-        except Exception as e:
-            logging.error(f"pay_direct send: {e}")
-            return
-        try:
-            await msg.delete()
-        except Exception:
-            pass
-        if sent_msg:
-            pay_sys.active_payments[track_id].update({
-                "chat_id": sent_msg.chat.id,
-                "message_id": sent_msg.message_id,
-                "original_text": caption,
-            })
-        return
-
-    # ── PAYMENT CHECK (I Paid button) ───────────────────────────────────────
-    if data.startswith("pay_check_"):
-        track_id = data[10:]
-        payment = pay_sys.active_payments.get(track_id)
-        if not payment or payment.get("user_id") != user_id:
-            await _safe_answer(callback, "❌ No permission", show_alert=True)
-            return
-        bot_i = pay_sys.get_bot()
-        if not bot_i:
-            await _safe_answer(callback, "❌ Bot error", show_alert=True)
-            return
-        try:
-            status = await asyncio.to_thread(pay_sys.check_payment_status, track_id)
-            logging.info(f"pay_check {track_id}: {status}")
-            if status and status.lower() == "paid":
-                await asyncio.to_thread(pay_sys.activate_plan, user_id, payment["plan"])
-                receipt = pay_sys.get_receipt_for_user(user_id, payment["plan"])
-                pi = pay_sys.PLANS.get(payment["plan"], {})
-                dn = callback.from_user.first_name or callback.from_user.username or "User"
-                ul = f'<a href="tg://user?id={user_id}">{dn}</a>'
-                mid = mask_receipt_id(receipt['receipt_id']) if receipt else "N/A"
-                try:
-                    await bot_i.send_message(
-                        chat_id=LOG_CHANNEL_ID, parse_mode="HTML",
-                        text=(f"<b>NEW PLAN PURCHASED 🛒</b>\n<b>User ➛</b> {ul}\n"
-                              f"<b>Access ➛</b> <b>{pi.get('display','')}</b>\n"
-                              f"<b>Amount ➛</b> <b>{pi.get('price',0)} USD</b>\n"
-                              f"<b>Receipt ID ➛</b> <code>{mid}</code>")
-                    )
-                except Exception as le:
-                    logging.error(f"log channel: {le}")
-                success = (
-                    f"✅ <b>𝗧𝗿𝗮𝗻𝘀𝗮𝗰𝘁𝗶𝗼𝗻 𝗦𝘂𝗰𝗰𝗲𝘀𝘀!</b>\n\n"
-                    f" <b>𝗣𝗹𝗮𝗻 ➛</b> {pi.get('display','')}\n"
-                    f" <b>𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻 ➛</b> {pi.get('days',0)} Days\n"
-                    f" <b>𝗖𝗿𝗲𝗱𝗶𝘁𝘀 𝗔𝗱𝗱𝗲𝗱 ➛</b> +{pi.get('credits',0):,}\n\n"
-                    f" <b>𝗬𝗼𝘂𝗿 𝗣𝗹𝗮𝗻 𝗵𝗮𝘀 𝗯𝗲𝗲𝗻 𝗮𝗰𝘁𝗶𝘃𝗮𝘁𝗲𝗱!</b>"
-                )
-                dm_kb = InlineKeyboardMarkup(inline_keyboard=[[
-                    InlineKeyboardButton(text="𝗦𝘂𝗽𝗽𝗼𝗿𝘁", url="https://t.me/blacklistedcarder1", style="primary", icon_custom_emoji_id=EMOJI_WHITE_STAR)
-                ]])
-                if receipt:
-                    dm = (f"𝐂𝐨𝐧𝐠𝐫𝐚𝐭𝐮𝐥𝐚𝐭𝐢𝐨𝐧𝐬! 🎉 𝐘𝐨𝐮𝐫 𝐚𝐜𝐜𝐞𝐬𝐬 𝐡𝐚𝐬 𝐛𝐞𝐞𝐧 𝐚𝐜𝐭𝐢𝐯𝐚𝐭𝐞𝐝.\n"
-                          f"𝗨𝘀𝗲𝗿 ➛ {ul}\n𝗔𝗰𝗰𝗲𝘀𝘀 ➛ <b>{receipt['plan_name']}</b>\n"
-                          f"𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻 ➛ {receipt['days']} Days\n"
-                          f"𝗖𝗿𝗲𝗱𝗶𝘁𝘀 𝗔𝗱𝗱𝗲𝗱 ➛ +{receipt['credits']:,}\n"
-                          f"𝗥𝗲𝗰𝗲𝗶𝗽𝘁 𝗜𝗗 ➛ <code>{receipt['receipt_id']}</code>\n"
-                          f"𝗣𝗹𝗲𝗮𝘀𝗲 𝘀𝗮𝘃𝗲 𝘁𝗵𝗶𝘀 𝗿𝗲𝗰𝗲𝗶𝗽𝘁 𝗜𝗗.")
-                else:
-                    dm = (f"𝐂𝐨𝐧𝐠𝐫𝐚𝐭𝐮𝐥𝐚𝐭𝐢𝐨𝐧𝐬! 🎉 𝐘𝐨𝐮𝐫 𝐚𝐜𝐜𝐞𝐬𝐬 𝐡𝐚𝐬 𝐛𝐞𝐞𝐧 𝐚𝐜𝐭𝐢𝐯𝐚𝐭𝐞𝐝.\n"
-                          f"𝗔𝗰𝗰𝗲𝘀𝘀 ➛ <b>{pi.get('display','')}</b>\n"
-                          f"𝗗𝘂𝗿𝗮𝘁𝗶𝗼𝗻 ➛ {pi.get('days',0)} Days\n"
-                          f"𝗖𝗿𝗲𝗱𝗶𝘁𝘀 𝗔𝗱𝗱𝗲𝗱 ➛ +{pi.get('credits',0):,}\n"
-                          f"𝗬𝗼𝘂𝗿 𝗽𝗹𝗮𝗻 𝗵𝗮𝘀 𝗯𝗲𝗲𝗻 𝗮𝗰𝘁𝗶𝘃𝗮𝘁𝗲𝗱!")
-                await asyncio.gather(
-                    _safe_answer(callback, "✅ Payment Confirmed! Plan activated.", show_alert=True),
-                    asyncio.ensure_future(bot_i.edit_message_text(chat_id=payment["chat_id"],
-                                            message_id=payment["message_id"], text=success)),
-                    asyncio.ensure_future(bot_i.send_message(chat_id=user_id, text=dm, parse_mode="HTML", reply_markup=dm_kb)),
-                )
-                pay_sys._cleanup_payment(track_id, user_id)
-
-            elif status and status.lower() == "expired":
-                await asyncio.gather(
-                    _safe_answer(callback, "⏰ Payment Expired!", show_alert=True),
-                    asyncio.ensure_future(bot_i.edit_message_text(
-                        chat_id=payment["chat_id"], message_id=payment["message_id"],
-                        text="<b>Payment Expired</b>\n\nThe payment window has closed.\nPlease start a new payment."
-                    )),
-                )
-                pay_sys._cleanup_payment(track_id, user_id)
-
-            else:
-                await _safe_answer(callback, "⏳ Payment not detected yet.\nEnsure exact amount is sent.", show_alert=True)
-                cur_text = payment.get("original_text", "")
-                if "Payment not detected yet" not in cur_text:
-                    pending = (f"{cur_text}\n\n⏳ <b>Payment not detected yet.</b>\n"
-                               f"<i>Ensure exact amount is sent. Click 'Paid' again to recheck.</i>")
-                    try:
-                        await bot_i.edit_message_text(
-                            chat_id=payment["chat_id"], message_id=payment["message_id"],
-                            text=pending, reply_markup=pay_sys.get_paid_button_keyboard(track_id, user_id)
-                        )
-                        payment["original_text"] = pending
-                    except Exception as e:
-                        if "not modified" not in str(e):
-                            logging.error(f"pending edit: {e}")
-        except Exception as e:
-            logging.error(f"pay_check error: {e}")
-            await _safe_answer(callback, "⚠️ Network error. Try again.", show_alert=True)
-        return
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # EXPLICIT CALLBACK REGISTRATIONS
@@ -820,7 +643,6 @@ async def _resolve_handle(bot, handle: str, label: str):
 
 async def _resolve_handles_on_startup(bot: Bot):
     """Resolve all @handles → numeric IDs. Runs in BOTH webhook + polling startup."""
-    pay_sys.set_bot(bot)
     # Resolve feedback channel
     try:
         import fb as _fb_module

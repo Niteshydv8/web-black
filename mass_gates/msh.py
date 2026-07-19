@@ -541,7 +541,7 @@ async def _safe_send_message_dm(bot: Bot, user_id: int, **kwargs) -> Optional[ty
 
 router = Router()
 
-API_BASE_URL = "https://shopify-api-production-00.up.railway.app/check"
+API_BASE_URL = os.getenv("MSH_API_BASE_URL", "https://shopify-api-production-00.up.railway.app/check")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CALLBACK DATA
