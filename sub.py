@@ -45,7 +45,21 @@ def _refresh_premium_cache(user_id: int):
     # Re-query DB and repopulate the cache with the fresh value.
     get_premium_status(user_id)
 
-ADMIN_IDS = {8502412301, 8952038376, 7814400733}
+# Read ADMIN_IDS from environment variable
+_admin_ids_str = os.getenv("ADMIN_IDS", "").strip()
+if _admin_ids_str:
+    try:
+        ADMIN_IDS = set()
+        for id_str in _admin_ids_str.split(","):
+            id_str = id_str.strip()
+            if id_str and id_str.isdigit():
+                ADMIN_IDS.add(int(id_str))
+    except Exception as e:
+        import logging
+        logging.error(f"Failed to parse ADMIN_IDS: {e}")
+        ADMIN_IDS = set()
+else:
+    ADMIN_IDS = set()
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # PREMIUM EMOJI IDS
