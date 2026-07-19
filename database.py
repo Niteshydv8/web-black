@@ -631,3 +631,17 @@ def load_global_proxies_http() -> list:
 if __name__ == "__main__":
     pass
 ensure_codes_table()
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# API MANAGEMENT (Dynamic API endpoints)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def ensure_apis_table():
+    try:
+        col = get_collection("apis")
+        col.create_index([("name", ASCENDING)], unique=True)
+        print("[DB] APIs collection ready.")
+    except Exception as e:
+        print(f"[DB] Error ensuring APIs collection: {e}")
+
+ensure_apis_table()
