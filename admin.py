@@ -216,6 +216,13 @@ _ADMIN_KB = _build_admin_kb()
 @router.message(Command("admin"))
 async def admin_command(message: types.Message):
     user_id = message.from_user.id
+    user_name = message.from_user.first_name or "Unknown"
+
+    # LOG THIS FOR DEBUGGING
+    logging.warning(f"[ADMIN-CMD] User {user_id} ({user_name}) tried /admin")
+    logging.warning(f"[ADMIN-CMD] ADMIN_IDS = {sorted(ADMIN_IDS)}")
+    logging.warning(f"[ADMIN-CMD] Is {user_id} in {sorted(ADMIN_IDS)}? {user_id in ADMIN_IDS}")
+
     if user_id not in ADMIN_IDS:
         red = f'<tg-emoji emoji-id="{EMOJI_RED_TICK}">❌</tg-emoji>'
         await message.reply(
