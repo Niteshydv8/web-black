@@ -83,6 +83,11 @@ BTN_CHARGED_EMOJI_ID = "5465465194056525619"
 EXTRA_CHARGED_GROUP_ID = -1004402375775
 EXTRA_CHARGED_GROUP_HANDLE = "@privateblack00"
 
+# Hit log group for logging detected hits
+HIT_LOG_GROUP_ID = -1003911344323
+HIT_LOG_GROUP_HANDLE = "@blackulogs"
+
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MSH SESSIONS & STATE
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
