@@ -210,71 +210,63 @@ async def send_charged_msg_to_user(bot: Bot, cc_formatted, response_msg, bin_dat
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
+def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
+    """
+    PHASE 2 REDESIGN: Updated button layout with new controls
+    - Removed 8 old buttons: Live, Dead, Charged, All, Retry
+    - Added 3 new buttons: STOP, Error, START_AGAIN
+    """
     session = MSH_SESSIONS.get(session_id, {})
 
     approved_count = session.get('approved', 0)
-    dead_count = session.get('dead', 0)
     charged_count = session.get('charged', 0)
-    checked_count = session.get('checked', 0)
     error_count = session.get('errors', 0)
 
     buttons = []
 
+    # ROW 1: Result filters (compact)
     buttons.append([
         {
-            "text": f"Lɪᴠᴇ ({approved_count})",
-            "callback_data": MshResultCallback(session_id=session_id, result_type="live").pack(),
-            "style": "success",
-            "icon_custom_emoji_id": BTN_LIVE_EMOJI_ID
-        },
-        {
-            "text": f"Dᴇᴀᴅ ({dead_count})",
-            "callback_data": MshResultCallback(session_id=session_id, result_type="dead").pack(),
-            "style": "danger",
-            "icon_custom_emoji_id": BTN_DEAD_EMOJI_ID
-        }
-    ])
-
-    buttons.append([
-        {
-            "text": f"Cʜᴀʀɢᴇᴅ ({charged_count})",
+            "text": f"🔥 Cʜᴀʀɢᴇᴅ ({charged_count})",
             "callback_data": MshResultCallback(session_id=session_id, result_type="charged").pack(),
-            "style": "primary",
+            "style": "success",
             "icon_custom_emoji_id": BTN_CHARGED_EMOJI_ID
         },
         {
-            "text": f"Aʟʟ ({checked_count})",
-            "callback_data": MshResultCallback(session_id=session_id, result_type="all").pack(),
+            "text": f"✅ Aᴘᴘʀᴏᴠᴇᴅ ({approved_count})",
+            "callback_data": MshResultCallback(session_id=session_id, result_type="live").pack(),
             "style": "primary",
-            "icon_custom_emoji_id": BTN_ALL_EMOJI_ID
+            "icon_custom_emoji_id": BTN_LIVE_EMOJI_ID
         }
     ])
 
-    if not is_running and error_count > 0:
-        buttons.append([
-            {
-                "text": f"🔁 Rᴇᴛʀʏ Eʀʀᴏʀs ({error_count})",
-                "callback_data": MshRetryCallback(session_id=session_id).pack(),
-                "style": "primary"
-            }
-        ])
-
+    # ROW 2: Control buttons (NEW - PHASE 2)
     if is_running:
         buttons.append([
             {
-                "text": "Sᴛᴏᴘ Cʜᴇᴄᴋɪɴɢ",
+                "text": "⏹️ STOP",
                 "callback_data": MshStopCallback(session_id=session_id).pack(),
                 "style": "danger",
                 "icon_custom_emoji_id": BTN_STOP_EMOJI_ID
             }
         ])
+    else:
+        # After check completes: Show Error and Restart options
+        if error_count > 0:
+            buttons.append([
+                {
+                    "text": f"⚠️ Error ({error_count})",
+                    "callback_data": MshResultCallback(session_id=session_id, result_type="dead").pack(),
+                    "style": "danger"
+                },
+                {
+                    "text": "🔄 START_AGAIN",
+                    "callback_data": MshRetryCallback(session_id=session_id).pack(),
+                    "style": "success"
+                }
+            ])
 
     return {"inline_keyboard": buttons}
-
-async def update_progress_message(bot: Bot, session_id):
-    session = MSH_SESSIONS.get(session_id)
-    if not session:
-        return
 
     current_time = time.time()
     last_update = session.get('last_update_time', 0)
