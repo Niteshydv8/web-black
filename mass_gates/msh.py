@@ -27,10 +27,17 @@ from database import (
     is_unlimited_msh,
     set_unlimited_msh,
     is_gate_enabled,
+    get_proxy_health,
 )
 from sub import get_premium_status
 from mass_gates.sitechk import is_admin
-from gates.sh import extract_cards
+from gates.sh import (
+    extract_cards,
+    luhn_check,
+    parse_card,
+    is_expired,
+    get_user_plan_name,
+)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -101,6 +108,15 @@ HIT_LOG_GROUP_HANDLE = "@blackulogs"
 MSH_SESSIONS = {}
 _PER_USER_API_CONCURRENCY = 7
 _GLOBAL_API_SEMAPHORE = asyncio.Semaphore(_PER_USER_API_CONCURRENCY)
+
+
+def is_session_stopped(session_id: str) -> bool:
+    """Check if a session has been stopped by the user."""
+    session = MSH_SESSIONS.get(session_id)
+    if not session:
+        return True
+    return session.get('status') == 'STOPPED'
+
 
 def _build_hit_caption(
     cc_formatted: str,
