@@ -697,45 +697,18 @@ def format_page_content(state: Dict, elapsed: float, is_working: bool) -> str:
 
 
 def get_keyboard(msg_id: int, is_working: bool = True) -> Optional[InlineKeyboardMarkup]:
-    """PHASE 2 REDESIGN: Match /msh button layout for /sh command"""
+    """PHASE 2 MINIMAL: Only pagination buttons - NO count display buttons"""
     state = SH_SESSIONS.get(msg_id)
     if not state:
         return None
 
     buttons = []
     
-    # Count results by status
-    charged_count = sum(
-        1 for r in state.get("results", [])
-        if f'emoji-id="{CUSTOM_CHARGED_EMOJI_ID}"' in r.get("symbol", "")
-    )
-    approved_count = sum(
-        1 for r in state.get("results", [])
-        if f'emoji-id="{CUSTOM_APPROVED_EMOJI_ID}"' in r.get("symbol", "")
-    )
-    error_count = sum(
-        1 for r in state.get("results", [])
-        if "site error" in r.get("resp", "").lower() or r.get("resp") == "N/A"
-    )
-    
-    # ROW 1: Result filters (compact) - similar to /msh
-    buttons.append([
-        InlineKeyboardButton(
-            text=f"🔥 Charged ({charged_count})",
-            callback_data=f"sh_filter_charged_{msg_id}"
-        ),
-        InlineKeyboardButton(
-            text=f"✅ Approved ({approved_count})",
-            callback_data=f"sh_filter_approved_{msg_id}"
-        ),
-    ])
-    
-    # ROW 2: Control buttons - contextual
     if is_working:
-        # During check: Show nothing (or STOP if implemented)
-        pass
+        # During check: No buttons
+        return None
     else:
-        # After check: Show pagination + error button
+        # After check: Only pagination buttons (Back/Next)
         total = len(state["results"])
         pages = (total + 5) // 6
         current = state["page"]
@@ -750,6 +723,12 @@ def get_keyboard(msg_id: int, is_working: bool = True) -> Optional[InlineKeyboar
             pagination_row.append(InlineKeyboardButton(
                 text="Next ▶",
                 callback_data=f"sh_next_{msg_id}"
+            ))
+        
+        if pagination_row:
+            buttons.append(pagination_row)
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
             ))
         
         if pagination_row:
