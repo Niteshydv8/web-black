@@ -210,7 +210,6 @@ async def send_charged_msg_to_user(bot: Bot, cc_formatted, response_msg, bin_dat
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
-def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
     """
     PHASE 2 REDESIGN: Updated button layout with new controls
     - Removed 8 old buttons: Live, Dead, Charged, All, Retry
