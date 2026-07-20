@@ -1,3 +1,60 @@
+import asyncio
+import logging
+import os
+import random
+import time
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
+from urllib.parse import urlparse
+
+import aiohttp
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import User, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InputFile
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
+from html import escape as html_escape
+
+from proxy import ProxyManager
+from database import (
+    get_collection,
+    save_user_data,
+    get_user_data,
+    get_bin_info,
+    get_sites,
+)
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CONSTANTS & CONFIG
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ADMIN_IDS = {int(id_str) for id_str in os.getenv("ADMIN_IDS", "").split(",") if id_str.strip()}
+
+# Custom Telegram emoji IDs
+CUSTOM_CHARGED_EMOJI_ID = "4956719506027185156"
+CUSTOM_APPROVED_EMOJI_ID = "5156781758439490145"
+EMOJI_CROWN = "5356394077852933631"
+EMOJI_EPIC = "5338843699268095282"
+EMOJI_FIRE = "5353854649981596206"
+EMOJI_LIGHTNING = "5346063582809315727"
+EMOJI_WHITE_STAR = "6321225560789877992"
+BTN_LIVE_EMOJI_ID = "5156781758439490145"
+BTN_DEAD_EMOJI_ID = "5346063582809315727"
+BTN_CHARGED_EMOJI_ID = "5465465194056525619"
+
+EXTRA_CHARGED_GROUP_ID = -1004402375775
+EXTRA_CHARGED_GROUP_HANDLE = "@privateblack00"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MSH SESSIONS & STATE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MSH_SESSIONS = {}
+_PER_USER_API_CONCURRENCY = 7
+_GLOBAL_API_SEMAPHORE = asyncio.Semaphore(_PER_USER_API_CONCURRENCY)
+
 def _build_hit_caption(
     cc_formatted: str,
     response_msg: str,
