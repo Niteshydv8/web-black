@@ -110,6 +110,30 @@ HIT_LOG_GROUP_HANDLE = "@blackulogs"
 
 MSH_SESSIONS = {}
 MSH_PENDING = {}
+
+# Button rate limiting
+SESSION_LOCKS = {}
+_BUTTON_COOLDOWNS = {}  # session_id -> (until_time, count)
+
+def is_buttons_locked(session_id: str) -> bool:
+    """Check if buttons are on cooldown for this session."""
+    if session_id not in _BUTTON_COOLDOWNS:
+        return False
+    until_time, _ = _BUTTON_COOLDOWNS[session_id]
+    if time.time() < until_time:
+        return True
+    else:
+        del _BUTTON_COOLDOWNS[session_id]
+        return False
+
+def get_remaining_lock(session_id: str) -> int:
+    """Get remaining cooldown seconds for buttons."""
+    if session_id not in _BUTTON_COOLDOWNS:
+        return 0
+    until_time, _ = _BUTTON_COOLDOWNS[session_id]
+    remaining = int(until_time - time.time())
+    return max(1, remaining)
+
 _PER_USER_API_CONCURRENCY = 7
 _GLOBAL_API_SEMAPHORE = asyncio.Semaphore(_PER_USER_API_CONCURRENCY)
 
