@@ -1436,9 +1436,9 @@ async def msh_command(message: types.Message):
         "total_cards": total_cards,
     }
 
-    crown  = f'<tg-emoji emoji-id="{EMOJI_CROWN}">👑</tg-emoji>'
-    fire   = f'<tg-emoji emoji-id="{CUSTOM_CHARGED_EMOJI_ID}">🔥</tg-emoji>'
-    blue   = f'<tg-emoji emoji-id="{CUSTOM_APPROVED_EMOJI_ID}">✅</tg-emoji>'
+    crown  = '👑'
+    fire   = '🔥'
+    blue   = '✅'
 
     prompt_text = (
         f"{crown} <b>𝗠𝗮𝘀𝘀 𝗖𝗵𝗲𝗰𝗸 ➛ 𝗦𝗲𝗹𝗲𝗰𝘁 𝗠𝗼𝗱𝗲</b>\n"
