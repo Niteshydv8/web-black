@@ -1220,8 +1220,7 @@ async def msh_mode_callback(callback: types.CallbackQuery, callback_data: MshMod
             else f"✅ <b>Approved + Charged</b>"
         )
         await callback.message.edit_text(
-            f"<tg-emoji emoji-id=\"{EMOJI_CROWN}\">👑</tg-emoji> "
-            f"<b>𝗠𝗼𝗱𝗲 𝗦𝗲𝗹𝗲𝗰𝘁𝗲𝗱 ➛</b> {choice_text}\n"
+            f"👑 <b>𝗠𝗼𝗱𝗲 𝗦𝗲𝗹𝗲𝗰𝘁𝗲𝗱 ➛</b> {choice_text}\n"
             f"<i>Starting mass check…</i>",
             parse_mode="HTML",
         )
