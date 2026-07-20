@@ -26,6 +26,7 @@ from database import (
     get_sites,
 )
 from mass_gates.sitechk import is_admin
+from gates.sh import extract_cards
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1313,7 +1314,7 @@ async def msh_command(message: types.Message):
         return
 
     # ── Extract & validate cards here so we can check credits upfront ──
-    extracted_cards = extract_cards_from_text(raw_text)
+    extracted_cards = extract_cards(raw_text)
     if not extracted_cards:
         await message.reply("❌ No valid card formats found.")
         return
