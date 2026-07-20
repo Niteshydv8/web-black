@@ -731,18 +731,6 @@ def get_keyboard(msg_id: int, is_working: bool = True) -> Optional[InlineKeyboar
     return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
             ))
         
-        if pagination_row:
-            buttons.append(pagination_row)
-        
-        if error_count > 0:
-            buttons.append([
-                InlineKeyboardButton(
-                    text=f"⚠️ Errors ({error_count})",
-                    callback_data=f"sh_filter_errors_{msg_id}"
-                )
-            ])
-
-    return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
 @router.callback_query(F.data.startswith("sh_"))
 async def sh_callback_handler(callback: types.CallbackQuery):
     data = callback.data
