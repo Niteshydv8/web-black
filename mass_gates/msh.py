@@ -15,7 +15,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest
+from aiogram.exceptions import TelegramForbiddenError, TelegramBadRequest, TelegramRetryAfter
 from html import escape as html_escape
 
 from proxy import ProxyManager
@@ -113,6 +113,34 @@ MSH_PENDING = {}
 _PER_USER_API_CONCURRENCY = 7
 _GLOBAL_API_SEMAPHORE = asyncio.Semaphore(_PER_USER_API_CONCURRENCY)
 
+# Per-session asyncio locks guarding progress-message edits so concurrent
+# workers never race on the same Telegram message.
+SESSION_LOCKS = {}
+
+# ── Button cooldown lock ──────────────────────────────────────────────
+# Prevents users from spamming the result/stop/retry buttons faster than
+# Telegram can process the edits (which would trigger flood control).
+BUTTON_LOCK_DURATION = 3  # seconds
+BUTTON_LOCK_UNTIL = {}
+
+
+def is_buttons_locked(session_id: str) -> bool:
+    """Check if the buttons for a session are currently under cooldown."""
+    until = BUTTON_LOCK_UNTIL.get(session_id, 0)
+    return time.time() < until
+
+
+def get_remaining_lock(session_id: str) -> int:
+    """Return remaining cooldown seconds (rounded up) for a session's buttons."""
+    until = BUTTON_LOCK_UNTIL.get(session_id, 0)
+    remaining = until - time.time()
+    return max(1, int(remaining) + 1) if remaining > 0 else 0
+
+
+def lock_buttons(session_id: str, duration: int = BUTTON_LOCK_DURATION):
+    """Start (or refresh) the cooldown lock for a session's buttons."""
+    BUTTON_LOCK_UNTIL[session_id] = time.time() + duration
+
 
 def is_session_stopped(session_id: str) -> bool:
     """Check if a session has been stopped by the user."""
@@ -175,6 +203,20 @@ def _build_hit_caption(
     )
     
     return caption
+
+
+async def _safe_send_message_dm(bot: Bot, user_id: int, text: str, parse_mode: str = "HTML"):
+    """Safely send a message to user's DM, return message if success or None on error."""
+    try:
+        return await bot.send_message(chat_id=user_id, text=text, parse_mode=parse_mode, disable_web_page_preview=True)
+    except (TelegramForbiddenError, TelegramBadRequest) as e:
+        logging.warning(f"Could not send DM to user {user_id}: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"Error sending DM to user {user_id}: {e}")
+        return None
+
+
 async def send_approved_msg_to_user(bot: Bot, cc_formatted, response_msg, bin_data, proxy_status_formatted, api_price, user_obj, plan_name):
     """Always sends the approved hit to the user's DM (private chat)."""
     caption = _build_hit_caption(
@@ -234,6 +276,34 @@ async def send_charged_msg_to_user(bot: Bot, cc_formatted, response_msg, bin_dat
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # BUTTONS & PROGRESS MESSAGE
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def generate_result_file(session: dict, result_type: str, user_obj, plan_name: str):
+    """Generate result file (CSV/TXT) for download."""
+    from io import BytesIO
+
+    cards = []
+    if result_type == "charged":
+        cards = session.get('charged_cards', [])
+    elif result_type == "live":
+        cards = session.get('live_cards', [])
+    elif result_type == "dead":
+        cards = session.get('dead_cards', [])
+    else:  # "all"
+        cards = (
+            session.get('charged_cards', []) +
+            session.get('live_cards', []) +
+            session.get('dead_cards', []) +
+            session.get('error_cards', [])
+        )
+
+    filename = f"results_{result_type}_{int(time.time())}.txt"
+
+    # Simple text format
+    content = "\n".join([card.get('card', '') for card in cards])
+
+    file_buffer = BytesIO(content.encode('utf-8'))
+    return file_buffer, filename, len(cards)
+
 
 def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
     """
