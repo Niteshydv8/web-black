@@ -28,6 +28,50 @@ PROXY_TIMEOUT = 8  # Timeout per proxy check (seconds)
 IPIFY_API_URL = "https://api.ipify.org?format=json"  # Ipify API endpoint
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROXY MANAGER CLASS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class ProxyManager:
+    """Manages proxy pool and rotation"""
+    
+    def __init__(self, proxy_list: list):
+        self.proxies = proxy_list if proxy_list else []
+        self.current_index = 0
+    
+    def get_next_proxy(self) -> tuple:
+        """Get next proxy in rotation
+        
+        Returns: (proxy_url, proxy_index)
+        """
+        if not self.proxies:
+            return None, -1
+        
+        proxy = self.proxies[self.current_index]
+        self.current_index = (self.current_index + 1) % len(self.proxies)
+        return proxy, self.current_index
+    
+    def get_proxy_at_index(self, index: int):
+        """Get proxy at specific index"""
+        if not self.proxies or index >= len(self.proxies):
+            return None
+        return self.proxies[index]
+    
+    def set_proxies(self, proxy_list: list):
+        """Update proxy list"""
+        self.proxies = proxy_list if proxy_list else []
+        self.current_index = 0
+    
+    def get_all_proxies(self) -> list:
+        """Get all proxies"""
+        return self.proxies.copy()
+    
+    def get_proxy_count(self) -> int:
+        """Get total proxy count"""
+        return len(self.proxies)
+
+
 # PARSING HELPERS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
