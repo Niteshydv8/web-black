@@ -35,6 +35,34 @@ router = Router()
 # CONSTANTS & CONFIG
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CALLBACK FILTERS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+from aiogram.filters.callback_data import CallbackData
+
+
+class MshResultCallback(CallbackData, prefix="msh_result"):
+    """Callback for MSH result button clicks"""
+    session_id: str
+    result_type: str  # "live", "dead", "charged", "all"
+
+
+class MshStopCallback(CallbackData, prefix="msh_stop"):
+    """Callback for MSH stop button"""
+    session_id: str
+
+
+class MshRetryCallback(CallbackData, prefix="msh_retry"):
+    """Callback for MSH retry button"""
+    session_id: str
+
+
+class MshModeCallback(CallbackData, prefix="msh_mode"):
+    """Callback for MSH mode selection"""
+    mode: str  # "single", "batch", "interactive"
+
+
 ADMIN_IDS = {int(id_str) for id_str in os.getenv("ADMIN_IDS", "").split(",") if id_str.strip()}
 
 # Custom Telegram emoji IDs
