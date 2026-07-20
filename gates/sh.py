@@ -30,7 +30,7 @@ router = Router()
 # CONFIGURATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-API_URL = "https://shopify-api-production-00.up.railway.app/check"
+API_URL = "https://shopify-api-nepalii.up.railway.app/check"
 
 SITES_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mass_gates", "sites.txt")
 
