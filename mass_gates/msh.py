@@ -25,6 +25,7 @@ from database import (
     get_bin_info,
     get_sites,
 )
+from mass_gates.sitechk import is_admin
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
