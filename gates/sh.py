@@ -727,10 +727,6 @@ def get_keyboard(msg_id: int, is_working: bool = True) -> Optional[InlineKeyboar
         
         if pagination_row:
             buttons.append(pagination_row)
-
-    return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
-            ))
-        
 @router.callback_query(F.data.startswith("sh_"))
 async def sh_callback_handler(callback: types.CallbackQuery):
     data = callback.data
