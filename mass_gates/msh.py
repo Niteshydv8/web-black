@@ -1266,15 +1266,6 @@ async def msh_command(message: types.Message):
         )
         return
 
-    user_proxies = await get_user_proxies(user_id)
-    if not user_proxies:
-        await message.reply(
-            "⚠️ <b>𝗡𝗼 𝗣𝗿𝗼𝘅𝗶𝗲𝘀!</b>\n\n"
-            "Add proxies using <code>/proxy</code> command.",
-            parse_mode="HTML"
-        )
-        return
-
     # ── Collect raw text from command, reply, caption, and/or attached file ──
     raw_text = ""
 
