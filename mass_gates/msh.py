@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 import aiohttp
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import User, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InputFile
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
