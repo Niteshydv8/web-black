@@ -266,6 +266,10 @@ def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
             ])
 
     return {"inline_keyboard": buttons}
+async def update_progress_message(bot: Bot, session_id):
+    session = MSH_SESSIONS.get(session_id)
+    if not session:
+        return
 
     current_time = time.time()
     last_update = session.get('last_update_time', 0)
