@@ -618,7 +618,7 @@ async def run_sh_check(
                 text += f"\n\n<tg-emoji emoji-id=\"{EMOJI_LIGHTNING}\">⏳</tg-emoji> <b>𝗖𝗵𝗲𝗰𝗸𝗶𝗻𝗴 {len(results)}/{total_cards}...</b>"
 
             try:
-                await status_msg.edit_text(text, parse_mode="HTML", reply_markup=get_keyboard(msg_id))
+                await status_msg.edit_text(text, parse_mode="HTML", reply_markup=get_keyboard(msg_id, is_working=True))
             except Exception:
                 pass
 
@@ -647,7 +647,7 @@ async def run_sh_check(
     final_text = format_page_content(SH_SESSIONS[msg_id], elapsed_final, is_working=False)
     final_text += f"\n\n<tg-emoji emoji-id=\"{EMOJI_BLUE_TICK}\">✅</tg-emoji> <b>𝗖𝗵𝗲𝗰𝗸 𝗖𝗼𝗺𝗽𝗹𝗲𝘁𝗲.</b> <tg-emoji emoji-id=\"{EMOJI_EPIC}\">✨</tg-emoji>"
 
-    await status_msg.edit_text(final_text, parse_mode="HTML", reply_markup=get_keyboard(msg_id))
+    await status_msg.edit_text(final_text, parse_mode="HTML", reply_markup=get_keyboard(msg_id, is_working=False))
 
     if charged_count > 0:
         try:
@@ -696,24 +696,74 @@ def format_page_content(state: Dict, elapsed: float, is_working: bool) -> str:
     return text
 
 
-def get_keyboard(msg_id: int) -> Optional[InlineKeyboardMarkup]:
+def get_keyboard(msg_id: int, is_working: bool = True) -> Optional[InlineKeyboardMarkup]:
+    """PHASE 2 REDESIGN: Match /msh button layout for /sh command"""
     state = SH_SESSIONS.get(msg_id)
     if not state:
         return None
 
-    total = len(state["results"])
-    pages = (total + 5) // 6
-    current = state["page"]
+    buttons = []
+    
+    # Count results by status
+    charged_count = sum(
+        1 for r in state.get("results", [])
+        if f'emoji-id="{CUSTOM_CHARGED_EMOJI_ID}"' in r.get("symbol", "")
+    )
+    approved_count = sum(
+        1 for r in state.get("results", [])
+        if f'emoji-id="{CUSTOM_APPROVED_EMOJI_ID}"' in r.get("symbol", "")
+    )
+    error_count = sum(
+        1 for r in state.get("results", [])
+        if "site error" in r.get("resp", "").lower() or r.get("resp") == "N/A"
+    )
+    
+    # ROW 1: Result filters (compact) - similar to /msh
+    buttons.append([
+        InlineKeyboardButton(
+            text=f"🔥 Charged ({charged_count})",
+            callback_data=f"sh_filter_charged_{msg_id}"
+        ),
+        InlineKeyboardButton(
+            text=f"✅ Approved ({approved_count})",
+            callback_data=f"sh_filter_approved_{msg_id}"
+        ),
+    ])
+    
+    # ROW 2: Control buttons - contextual
+    if is_working:
+        # During check: Show nothing (or STOP if implemented)
+        pass
+    else:
+        # After check: Show pagination + error button
+        total = len(state["results"])
+        pages = (total + 5) // 6
+        current = state["page"]
 
-    row = []
-    if current > 0:
-        row.append(InlineKeyboardButton(text="◀ Back", callback_data=f"sh_prev_{msg_id}", icon_custom_emoji_id=EMOJI_RED_TICK))
-    if current < pages - 1:
-        row.append(InlineKeyboardButton(text="Next ▶", callback_data=f"sh_next_{msg_id}", icon_custom_emoji_id=EMOJI_DRAGON))
+        pagination_row = []
+        if current > 0:
+            pagination_row.append(InlineKeyboardButton(
+                text="◀ Back",
+                callback_data=f"sh_prev_{msg_id}"
+            ))
+        if current < pages - 1:
+            pagination_row.append(InlineKeyboardButton(
+                text="Next ▶",
+                callback_data=f"sh_next_{msg_id}"
+            ))
+        
+        if pagination_row:
+            buttons.append(pagination_row)
+        
+        if error_count > 0:
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"⚠️ Errors ({error_count})",
+                    callback_data=f"sh_filter_errors_{msg_id}"
+                )
+            ])
 
-    return InlineKeyboardMarkup(inline_keyboard=[row]) if row else None
-
-
+    return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
 @router.callback_query(F.data.startswith("sh_"))
 async def sh_callback_handler(callback: types.CallbackQuery):
     data = callback.data
@@ -755,6 +805,6 @@ async def sh_callback_handler(callback: types.CallbackQuery):
         text += "\n\n✅ <b>𝗖𝗵𝗲𝗰𝗸 𝗖𝗼𝗺𝗽𝗹𝗲𝘁𝗲.</b>"
 
     try:
-        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=get_keyboard(msg_id))
+        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=get_keyboard(msg_id, is_working=True))
     except Exception:
         pass
