@@ -1455,18 +1455,14 @@ async def msh_command(message: types.Message):
     mode_kb = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="Charged Only",
+                text="🔥 Charged Only",
                 callback_data=MshModeCallback(pending_id=pending_id, mode="charged").pack(),
-                style="primary",
-                icon_custom_emoji_id=CUSTOM_CHARGED_EMOJI_ID,
             ),
         ],
         [
             InlineKeyboardButton(
-                text="Approved + Charged",
+                text="✅ Approved + Charged",
                 callback_data=MshModeCallback(pending_id=pending_id, mode="approved").pack(),
-                style="success",
-                icon_custom_emoji_id=CUSTOM_APPROVED_EMOJI_ID,
             ),
         ],
     ])
