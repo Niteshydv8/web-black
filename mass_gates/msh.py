@@ -26,7 +26,9 @@ from database import (
     get_sites,
     is_unlimited_msh,
     set_unlimited_msh,
+    is_gate_enabled,
 )
+from sub import get_premium_status
 from mass_gates.sitechk import is_admin
 from gates.sh import extract_cards
 
