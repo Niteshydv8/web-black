@@ -53,7 +53,7 @@ except ImportError:
 # receives ~equal traffic (load-balanced).
 SHOPIFY_API_URLS = [
     (
-        "https://shopify-api-nepaliii.up.railway.app/check",
+        "https://shopify-api-nepalii.up.railway.app/check",
         None,
     ),
     (
