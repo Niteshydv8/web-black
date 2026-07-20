@@ -254,14 +254,10 @@ def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
         {
             "text": f"🔥 Cʜᴀʀɢᴇᴅ ({charged_count})",
             "callback_data": MshResultCallback(session_id=session_id, result_type="charged").pack(),
-            "style": "success",
-            "icon_custom_emoji_id": BTN_CHARGED_EMOJI_ID
         },
         {
             "text": f"✅ Aᴘᴘʀᴏᴠᴇᴅ ({approved_count})",
             "callback_data": MshResultCallback(session_id=session_id, result_type="live").pack(),
-            "style": "primary",
-            "icon_custom_emoji_id": BTN_LIVE_EMOJI_ID
         }
     ])
 
@@ -271,8 +267,6 @@ def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
             {
                 "text": "⏹️ STOP",
                 "callback_data": MshStopCallback(session_id=session_id).pack(),
-                "style": "danger",
-                "icon_custom_emoji_id": BTN_STOP_EMOJI_ID
             }
         ])
     else:
@@ -282,12 +276,10 @@ def get_result_buttons(session_id: str, is_running: bool = True) -> dict:
                 {
                     "text": f"⚠️ Error ({error_count})",
                     "callback_data": MshResultCallback(session_id=session_id, result_type="dead").pack(),
-                    "style": "danger"
                 },
                 {
                     "text": "🔄 START_AGAIN",
                     "callback_data": MshRetryCallback(session_id=session_id).pack(),
-                    "style": "success"
                 }
             ])
 
@@ -491,7 +483,7 @@ def _build_progress_caption(session: dict, session_id: str) -> str:
     if proxy_manager:
         stats = proxy_manager.get_stats()
         proxy_line = (
-            f"\n  <tg-emoji emoji-id=\"{EMOJI_LIGHTNING}\">⚡</tg-emoji> "
+            f"\n  ⚡ "
             f"<b>𝗣𝗿𝗼𝘅𝗶𝗲𝘀 ➛</b> "
             f'<tg-emoji emoji-id="{CUSTOM_APPROVED_EMOJI_ID}">🟢</tg-emoji>'
             f'<code>{stats["active"]}</code>'
