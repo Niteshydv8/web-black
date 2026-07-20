@@ -784,3 +784,78 @@ async def get_site_gateway(site_url: str) -> str:
     
     return "Unknown"
 
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WRAPPER FUNCTIONS FOR BACKWARD COMPATIBILITY
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def save_user_data(user_id: int, data_dict: dict) -> bool:
+    """Save user data (wrapper for update_user_stats)"""
+    try:
+        if "is_charged" in data_dict:
+            update_user_stats(user_id, data_dict.get("is_charged", False))
+        
+        # Save custom fields to MongoDB
+        col = get_collection("users")
+        col.update_one(
+            {"user_id": user_id},
+            {"$set": data_dict},
+            upsert=True
+        )
+        return True
+    except Exception as e:
+        logging.error(f"Error saving user data for {user_id}: {e}")
+        return False
+
+
+def get_user_data(user_id: int) -> dict:
+    """Get user data (wrapper for get_user)"""
+    try:
+        user = get_user(user_id)
+        if user:
+            return {
+                "user_id": user_id,
+                "credits": get_user_credits(user_id),
+                "unlimited_msh": is_unlimited_msh(user_id)
+            }
+        return {}
+    except Exception as e:
+        logging.error(f"Error getting user data for {user_id}: {e}")
+        return {}
+
+
+def get_bin_info(bin_number: str) -> dict:
+    """Get BIN information from database"""
+    try:
+        col = get_collection("bins")
+        doc = col.find_one({"bin": bin_number})
+        if doc:
+            return {
+                "bin": doc.get("bin"),
+                "bank": doc.get("bank"),
+                "country": doc.get("country"),
+                "type": doc.get("type"),
+                "brand": doc.get("brand")
+            }
+        return {}
+    except Exception as e:
+        logging.error(f"Error getting BIN info for {bin_number}: {e}")
+        return {}
+
+
+def get_sites() -> list:
+    """Get list of all sites"""
+    try:
+        col = get_collection("sites")
+        sites = []
+        for doc in col.find({}):
+            sites.append({
+                "url": doc.get("url"),
+                "name": doc.get("name"),
+                "gateway": doc.get("gateway")
+            })
+        return sites
+    except Exception as e:
+        logging.error(f"Error getting sites: {e}")
+        return []
+
