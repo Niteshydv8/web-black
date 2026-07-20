@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import random
+import string
 import time
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
@@ -28,6 +29,8 @@ from database import (
     set_unlimited_msh,
     is_gate_enabled,
     get_proxy_health,
+    get_user_credits,
+    load_global_proxies_http,
 )
 from sub import get_premium_status
 from mass_gates.sitechk import is_admin
@@ -106,6 +109,7 @@ HIT_LOG_GROUP_HANDLE = "@blackulogs"
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 MSH_SESSIONS = {}
+MSH_PENDING = {}
 _PER_USER_API_CONCURRENCY = 7
 _GLOBAL_API_SEMAPHORE = asyncio.Semaphore(_PER_USER_API_CONCURRENCY)
 
@@ -1287,7 +1291,23 @@ async def msh_command(message: types.Message):
         )
         return
 
+    # Get user proxies
+    try:
+        user_col = get_collection("users")
+        user_data = user_col.find_one({"user_id": user_id})
+        user_proxies = user_data.get("proxies", []) if user_data else []
+        if not user_proxies:
+            user_proxies = load_global_proxies_http()
+    except Exception as e:
+        logging.error(f"Error loading proxies: {e}")
+        user_proxies = load_global_proxies_http()
+
+    if not user_proxies:
+        await message.reply("⚠️ No proxies available. Please add proxies using /proxy command.")
+        return
+
     # ── Collect raw text from command, reply, caption, and/or attached file ──
+
     raw_text = ""
 
     # Command inline text (works whether the trigger came via .text or .caption)
